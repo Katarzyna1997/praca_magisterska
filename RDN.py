@@ -9,12 +9,12 @@ DIV2K_RGB_MEAN = np.array([0.4488, 0.4371, 0.4040]) * 255
 def rdn(scale, num_filters=64, num_res_blocks=8, res_block_scaling=None):
     x_in = Input(shape=(None, None, 3))
     x = Lambda(normalize)(x_in)
-    x = Conv2D(num_filters, 3, padding='same')(x_in) #//F_m1 = Conv2D()(LR_input)
-    x = b = Conv2D(num_filters, 3, padding='same')(x) # //F_0 = Conv2D()(F_m1)
+    x = Conv2D(num_filters, 3, padding='same')(x_in) 
+    x = b = Conv2D(num_filters, 3, padding='same')(x) 
     for i in range(num_res_blocks):
         b = res_block(b, num_filters, res_block_scaling)
-    b = Conv2D(num_filters, 3, padding='same')(b)  #//GFF1 = Conv2D()(FD)
-    b = Conv2D(num_filters, 3, padding='same')(b)  #//GFF2 = Conv2D()(GFF1)
+    b = Conv2D(num_filters, 3, padding='same')(b)  
+    b = Conv2D(num_filters, 3, padding='same')(b)  
 
     x = Add()([x, b])
         # Upscaling
