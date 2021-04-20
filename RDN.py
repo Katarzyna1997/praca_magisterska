@@ -10,16 +10,14 @@ def rdn(scale, num_filters=64, num_res_blocks=8, res_block_scaling=None):
     x_in = Input(shape=(None, None, 3))
     x = Lambda(normalize)(x_in)
     x = Conv2D(num_filters, 3, padding='same')(x_in) 
-    x = b = Conv2D(num_filters, 3, padding='same')(x) 
+    x = a = Conv2D(num_filters, 3, padding='same')(x) 
     for i in range(num_res_blocks):
-        b = res_block(b, num_filters, res_block_scaling)
-    b = Conv2D(num_filters, 3, padding='same')(b)  
-    b = Conv2D(num_filters, 3, padding='same')(b)  
+        a = res_block(a, num_filters, res_block_scaling)
+    a = Conv2D(num_filters, 3, padding='same')(a)  
+    a = Conv2D(num_filters, 3, padding='same')(a)  
 
-    x = Add()([x, b])
-        # Upscaling
+    x = Add()([x, a])
     x = upsample(x, scale, num_filters)
-        # Compose SR image
     x = Conv2D(3, 3, padding='same')(x)
         
     return Model(x_in, x, name="rdn")
