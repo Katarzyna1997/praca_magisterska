@@ -8,11 +8,11 @@ def load_image(path):
     return np.array(Image.open(path))
 
 
-def plot_sample(lr, sr):
+def plot_sample(lr, sr, sr2):
     plt.figure(figsize=(20, 10))
 
-    images = [lr, sr]
-    titles = ['Low-Resolution', f'Super-Resolution(ESPCN)']
+    images = [lr, sr, sr2]
+    titles = ['Low-Resolution', f'Super-Resolution(ESPCN)', f'Super-Resolution(RDN)']
 
     for i, (img, title) in enumerate(zip(images, titles)):
         plt.subplot(1, 2, i+1)
