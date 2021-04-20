@@ -47,3 +47,14 @@ def upsample(x, scale, num_filters):
         x = upsample_1(x, 2, name='conv2d_2_scale_2')
 
     return x
+
+def normalize(x, rgb_mean=DIV2K_RGB_MEAN):
+    return (x - rgb_mean) / 127.5
+
+
+def denormalize(x, rgb_mean=DIV2K_RGB_MEAN):
+    return x * 127.5 + rgb_mean
+
+
+def pixel_shuffle(scale):
+    return lambda x: tf.nn.depth_to_space(x, scale)
