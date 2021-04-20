@@ -53,7 +53,6 @@ class Trainer:
                 loss_value = loss_mean.result()
                 loss_mean.reset_states()
 
-                # Compute PSNR on validation dataset
                 psnr_value = self.evaluate(valid_dataset)
 
                 duration = time.perf_counter() - self.now
@@ -61,7 +60,6 @@ class Trainer:
 
                 if save_best_only and psnr_value <= ckpt.psnr:
                     self.now = time.perf_counter()
-                    # skip saving checkpoint, no PSNR improvement
                     continue
 
                 ckpt.psnr = psnr_value
@@ -112,6 +110,16 @@ def psnr(x1, x2):
 
 
 class ESPCNTrainer(Trainer):
+    def __init__(self,
+                 model,
+                 checkpoint_dir,
+                 learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-4, 5e-5])):
+        super().__init__(model, loss=MeanAbsoluteError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
+
+    def train(self, train_dataset, valid_dataset, steps=300000, evaluate_every=1000, save_best_only=True):
+        super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
+        
+class RDNTrainer(Trainer):
     def __init__(self,
                  model,
                  checkpoint_dir,
