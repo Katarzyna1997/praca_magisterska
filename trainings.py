@@ -116,7 +116,7 @@ class ESPCNTrainer(Trainer):
                  learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-4, 5e-5])):
         super().__init__(model, loss=MeanAbsoluteError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
 
-    def train(self, train_dataset, valid_dataset, steps=300000, evaluate_every=1000, save_best_only=True):
+    def train(self, train_dataset, valid_dataset, steps=2000, evaluate_every=1000, save_best_only=True):
         super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
         
 class RDNTrainer(Trainer):
@@ -126,7 +126,7 @@ class RDNTrainer(Trainer):
                  learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-4, 5e-5])):
         super().__init__(model, loss=MeanAbsoluteError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
 
-    def train(self, train_dataset, valid_dataset, steps=300000, evaluate_every=1000, save_best_only=True):
+    def train(self, train_dataset, valid_dataset, steps=2000, evaluate_every=1000, save_best_only=True):
         super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
 
 
