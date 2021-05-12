@@ -19,18 +19,16 @@ def wdsr(scale, num_filters, num_res_blocks, res_block_expansion, res_block_scal
     x_in = Input(shape=(None, None, 3))
     x = Lambda(normalize)(x_in)
 
-    # main branch
-    m = conv2d_weightnorm(num_filters, 3, padding='same')(x)
+    b = conv2d_weightnorm(num_filters, 3, padding='same')(x)
     for i in range(num_res_blocks):
-        m = res_block(m, num_filters, res_block_expansion, kernel_size=3, scaling=res_block_scaling)
-    m = conv2d_weightnorm(3 * scale ** 2, 3, padding='same', name=f'conv2d_main_scale_{scale}')(m)
-    m = Lambda(pixel_shuffle(scale))(m)
+        b = res_block(b, num_filters, res_block_expansion, kernel_size=3, scaling=res_block_scaling)
+    b = conv2d_weightnorm(3 * scale ** 2, 3, padding='same', name=f'conv2d_main_scale_{scale}')(b)
+    b = Lambda(pixel_shuffle(scale))(b)
 
-    # skip branch
-    s = conv2d_weightnorm(3 * scale ** 2, 5, padding='same', name=f'conv2d_skip_scale_{scale}')(x)
-    s = Lambda(pixel_shuffle(scale))(s)
+    c = conv2d_weightnorm(3 * scale ** 2, 5, padding='same', name=f'conv2d_skip_scale_{scale}')(x)
+    c = Lambda(pixel_shuffle(scale))(c)
 
-    x = Add()([m, s])
+    x = Add()([b, c])
     x = Lambda(denormalize)(x)
 
     return Model(x_in, x, name="wdsr")
