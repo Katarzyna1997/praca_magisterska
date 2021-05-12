@@ -7,10 +7,6 @@ from tensorflow.python.keras.applications.vgg19 import VGG19
 
 DIV2K_RGB_MEAN = np.array([0.4488, 0.4371, 0.4040]) * 255
 
-LR_SIZE = 24
-HR_SIZE = 96
-
-
 def upsample(x_in, num_filters):
     x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
     x = Lambda(pixel_shuffle(scale=2))(x)
@@ -27,7 +23,7 @@ def res_block(x_in, num_filters, momentum=0.8):
     return x
 
 
-def sr_resnet(num_filters=64, num_res_blocks=16):
+def srgan(num_filters=64, num_res_blocks=16):
     x_in = Input(shape=(None, None, 3))
     x = Lambda(normalize_01)(x_in)
 
@@ -50,7 +46,7 @@ def sr_resnet(num_filters=64, num_res_blocks=16):
     return Model(x_in, x)
 
 
-generator = sr_resnet
+srgan = srgan
 
 
 def discriminator_block(x_in, num_filters, strides=1, batchnorm=True, momentum=0.8):
@@ -61,7 +57,7 @@ def discriminator_block(x_in, num_filters, strides=1, batchnorm=True, momentum=0
 
 
 def discriminator(num_filters=64):
-    x_in = Input(shape=(HR_SIZE, HR_SIZE, 3))
+    x_in = Input(shape=(96, 96, 3))
     x = Lambda(normalize_m11)(x_in)
 
     x = discriminator_block(x, num_filters, batchnorm=False)
