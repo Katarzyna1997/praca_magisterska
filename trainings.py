@@ -129,4 +129,79 @@ class RDNTrainer(Trainer):
     def train(self, train_dataset, valid_dataset, steps=2000, evaluate_every=1000, save_best_only=True):
         super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
 
+class WdsrTrainer(Trainer):
+    def __init__(self,
+                 model,
+                 checkpoint_dir,
+                 learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-3, 5e-4])):
+        super().__init__(model, loss=MeanAbsoluteError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
 
+    def train(self, train_dataset, valid_dataset, steps=300000, evaluate_every=1000, save_best_only=True):
+        super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
+
+
+class SrganGeneratorTrainer(Trainer):
+    def __init__(self,
+                 model,
+                 checkpoint_dir,
+                 learning_rate=1e-4):
+        super().__init__(model, loss=MeanSquaredError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
+
+    def train(self, train_dataset, valid_dataset, steps=2000, evaluate_every=100, save_best_only=True):
+        super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
+
+class SrganTrainer:
+
+    def __init__(self,
+                 generator,
+                 discriminator,
+                 content_loss='VGG54',
+                 learning_rate=PiecewiseConstantDecay(boundaries=[1000], values=[1e-4, 1e-5])):
+        
+        self.vgg = srgan.vgg_54()
+        self.content_loss = content_loss
+        self.generator = generator
+        self.discriminator = discriminator
+        self.generator_optimizer = Adam(learning_rate=learning_rate)
+        self.discriminator_optimizer = Adam(learning_rate=learning_rate)
+
+        self.binary_cross_entropy = BinaryCrossentropy(from_logits=False)
+        self.mean_squared_error = MeanSquaredError()
+
+    def train(self, train_dataset, steps=2000):
+        pls_metric = Mean()
+        dls_metric = Mean()
+        step = 0
+
+        for lr, hr in train_dataset.take(steps):
+            step += 1
+
+            loss = self.train_step(lr, hr)
+            metric(loss)
+
+            if step % 50 == 0:
+                print(f'{step}/{steps}, loss = {loss.result():.4f}')
+                metric.reset_states()
+
+    @tf.function
+    def train_step(self, lr, hr):
+        with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+            lr = tf.cast(lr, tf.float32)
+            hr = tf.cast(hr, tf.float32)
+
+            sr = self.generator(lr, training=True)
+
+            hr_output = self.discriminator(hr, training=True)
+            sr_output = self.discriminator(sr, training=True)
+
+            loss = self._discriminator_loss(hr_output, sr_output)
+
+        gradients_of_discriminator = disc_tape.gradient(disc_loss, self.discriminator.trainable_variables)
+        self.discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, self.discriminator.trainable_variables))
+
+        return loss
+
+    def _discriminator_loss(self, hr_out, sr_out):
+        hr_loss = self.binary_cross_entropy(tf.ones_like(hr_out), hr_out)
+        sr_loss = self.binary_cross_entropy(tf.zeros_like(sr_out), sr_out)
+        return hr_loss + sr_loss
