@@ -194,14 +194,14 @@ class SrganTrainer:
             hr_output = self.discriminator(hr, training=True)
             sr_output = self.discriminator(sr, training=True)
 
-            loss = self._discriminator_loss(hr_output, sr_output)
+            loss = self._loss(hr_output, sr_output)
 
         gradients_of_discriminator = disc_tape.gradient(disc_loss, self.discriminator.trainable_variables)
         self.discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, self.discriminator.trainable_variables))
 
         return loss
 
-    def _discriminator_loss(self, hr_out, sr_out):
+    def _loss(self, hr_out, sr_out):
         hr_loss = self.binary_cross_entropy(tf.ones_like(hr_out), hr_out)
         sr_loss = self.binary_cross_entropy(tf.zeros_like(sr_out), sr_out)
         return hr_loss + sr_loss
