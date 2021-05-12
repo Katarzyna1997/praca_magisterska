@@ -7,21 +7,6 @@ from tensorflow.python.keras.applications.vgg19 import VGG19
 
 DIV2K_RGB_MEAN = np.array([0.4488, 0.4371, 0.4040]) * 255
 
-def upsample(x_in, num_filters):
-    x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
-    x = Lambda(pixel_shuffle(scale=2))(x)
-    return PReLU(shared_axes=[1, 2])(x)
-
-
-def res_block(x_in, num_filters, momentum=0.8):
-    x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
-    x = BatchNormalization(momentum=momentum)(x)
-    x = PReLU(shared_axes=[1, 2])(x)
-    x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
-    x = BatchNormalization(momentum=momentum)(x)
-    x = Add()([x_in, x])
-    return x
-
 
 def srgan(num_filters=64, num_res_blocks=16):
     x_in = Input(shape=(None, None, 3))
@@ -80,6 +65,20 @@ def discriminator(num_filters=64):
 
     return Model(x_in, x)
 
+def upsample(x_in, num_filters):
+    x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
+    x = Lambda(pixel_shuffle(scale=2))(x)
+    return PReLU(shared_axes=[1, 2])(x)
+
+
+def res_block(x_in, num_filters, momentum=0.8):
+    x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
+    x = BatchNormalization(momentum=momentum)(x)
+    x = PReLU(shared_axes=[1, 2])(x)
+    x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
+    x = BatchNormalization(momentum=momentum)(x)
+    x = Add()([x_in, x])
+    return x
 
 def vgg_22():
     return _vgg(5)
