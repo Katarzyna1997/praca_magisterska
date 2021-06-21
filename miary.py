@@ -17,4 +17,4 @@ def ssim(A,B):
     #   images, ensuring that the difference image is returned
     (score, diff) = compare_ssim(grayA, grayB, full=True)
     diff = (diff * 255).astype("uint8")
-    print("SSIM: {}".format(score))
+    return format(score)
